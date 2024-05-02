@@ -458,7 +458,7 @@ void Graham_scan(){
 
 ### 7.7 扫描线
 
-#### 7.7.1 扫描线求矩形面积并
+#### 7.7.1 求矩形面积并
 
 ```C++
 int n;	//矩形数量
@@ -478,7 +478,7 @@ struct SCAN_LINE{  //垂直于x轴
     int x;
     int type;  // 1——进边 -1——出边
     inline bool operator <(const SCAN_LINE &linex1){
-        return x<linex1.x;
+        return x==linex1.x ? type>linex1.type : x<linex1.x;  //在求矩形面积并时type先后没影响，但在求矩形周长时先加后减很重要
     }
 }scanline[2*N];	//图中每条竖直线的信息
 
@@ -535,5 +535,14 @@ void ScanLine(){
 		ans=ans+1ll*(scanline[i+1].x-scanline[i].x)*tree[1].len;
 	}
 }
+```
+
+#### 7.7.2 求矩形周长
+
+和求矩形面积并类似，只不过需要分别沿竖直和水平方向各扫描一遍，即只要重写scanline和Y即可。同时，将答案统计一行更改为：
+
+```c++
+ans=ans+abs(tree[1].len-last);
+last=tree[1].len;	//last定义在循环外面
 ```
 
