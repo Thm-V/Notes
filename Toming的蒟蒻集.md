@@ -164,12 +164,12 @@ struct Base{
 
 ```c++
 unsigned tot;
-vector prime[N];
+vector<int> prime[N];
 bool is_not_pr[N];
 void GetPrime(){
     for(int i=2;i<=MAX_NUM;i++){
         if(!is_not_pr[i]){
-			primer.push_back(i);
+			prime.push_back(i);
              tot++;
         }
         for(usigned j=0;j<tot && i*prime[j]<=MAX_NUM;j++){
