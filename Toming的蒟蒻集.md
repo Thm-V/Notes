@@ -456,3 +456,84 @@ void Graham_scan(){
 }
 ```
 
+### 7.7 扫描线
+
+#### 7.7.1 扫描线求矩形面积并
+
+```C++
+int n;	//矩形数量
+i64 ans;
+    
+int leny;
+int Y[2*N];  //所有出现的y值，用于离散化
+
+struct POINT{
+    int x;
+    int y;
+};
+
+struct SCAN_LINE{  //垂直于x轴
+    int bey;
+    int eny;  //bey<=eny
+    int x;
+    int type;  // 1——进边 -1——出边
+    inline bool operator <(const SCAN_LINE &linex1){
+        return x<linex1.x;
+    }
+}scanline[2*N];	//图中每条竖直线的信息
+
+struct TREE{	//把每一个小区间看作一个结点
+	int l,r;
+	int len;	//真实长度
+	int num;	//整个区间覆盖次数
+}tree[2*8*N];
+
+void Build(int L,int R,int k){
+	tree[k].l=L;
+	tree[k].r=R;
+	tree[k].len=tree[k].num=0;
+	if(L==R)
+		return;
+	int Mid=(L+R)/2;
+	Build(L,Mid,k*2);
+	Build(Mid+1,R,k*2+1);
+}
+
+void pushup(int k){  //虽是区间加，但无需lazy_tag，因为有进边就有出边，且当父亲被全覆盖时便和儿子没有关系
+	if(tree[k].num)
+		tree[k].len=Y[tree[k].r+1]-Y[tree[k].l];
+	else
+		tree[k].len=tree[k*2].len+tree[k*2+1].len;
+}
+
+void Update(int aiml,int aimr,int val,int L,int R,int k){	//aiml和aimr代表真实纵坐标值
+	if(aiml<=Y[L] && Y[R+1]<=aimr){
+		tree[k].num+=val;
+		pushup(k);
+		return;
+	}
+	int Mid=(L+R)/2;
+	if(aiml<=Y[Mid])	
+		Update(aiml,aimr,val,L,Mid,k*2);
+	if(Y[Mid+1]<aimr)
+		Update(aiml,aimr,val,Mid+1,R,k*2+1);
+	pushup(k);
+}
+
+void ScanLine(){
+    //先处理scanline和Y
+    
+	//纵坐标离散处理
+	sort(Y+1,Y+1+2*n);
+	leny=unique(Y+1,Y+1+2*n)-(Y+1);
+	
+	Build(1,leny-1,1);
+	sort(scanline+1,scanline+1+2*n);
+	
+	for(int i=1;i<2*n;i++){
+		Update(scanline[i].bey,scanline[i].eny,scanline[i].type,1,leny-1,1);
+		ans=ans+1ll*(scanline[i+1].x-scanline[i].x)*tree[1].len;
+	}
+}
+```
+
