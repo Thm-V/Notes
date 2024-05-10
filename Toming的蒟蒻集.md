@@ -472,13 +472,13 @@ struct POINT{
     int y;
 };
 
-struct SCAN_LINE{  //垂直于x轴
+struct SCANLINE{  //垂直于x轴
     int bey;
     int eny;  //bey<=eny
     int x;
     int type;  // 1——进边 -1——出边
-    inline bool operator <(const SCAN_LINE &linex1){
-        return x==linex1.x ? type>linex1.type : x<linex1.x;  //在求矩形面积并时type先后没影响，但在求矩形周长时先加后减很重要
+    inline bool operator <(const SCANLINE &scanline1){
+        return x==scanline1.x ? type>scanline1.type : x<scanline1.x;  //在求矩形面积并时type先后没影响，但在求矩形周长时先加后减很重要
     }
 }scanline[2*N];	//图中每条竖直线的信息
 
@@ -529,8 +529,8 @@ void ScanLine(){
 	
 	Build(1,leny-1,1);
 	sort(scanline+1,scanline+1+2*n);
-	
-	for(int i=1;i<2*n;i++){
+    
+	for(int i=1;i<2*n;i++){	//根据是否需要考虑最后一条边灵活确定是否需要取到等号
 		Update(scanline[i].bey,scanline[i].eny,scanline[i].type,1,leny-1,1);
 		ans=ans+1ll*(scanline[i+1].x-scanline[i].x)*tree[1].len;
 	}

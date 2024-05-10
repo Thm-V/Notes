@@ -91,5 +91,45 @@ endmodule
 
 ## 三、程序语句
 
+### assign语句
+
+​		assign语句是连续赋值语句，一般是将一个变量的值不间断地赋值给另一个变量，类似于被导线连在一起。
+
+```verilog
+assign a=b;
+```
+
+​		如果要用assign直接连接，就用wire型变量，wire型变量的值随时发生变化。
+
+### always语句
+
+​		always语句是条件循环语句，执行机制是通过对一个敏感变量事件驱动来实现的。always语句基本格式是：
+
+```verilog
+always @(敏感事件)begin
+	程序语句
+end
+```
+
+​		当敏感事件的条件满足一次时，就执行一次“程序语句”。
+
+```verilog
+always @(*)begin
+	程序语句
+end
+```
+
+​		当敏感信号非常多很容易就会把敏感信号遗漏，为了避免这个情况可以用"\*"代替，这个"\*"是指“程序语句”中所有的条件信号。
+
+​		当逻辑条件为`posedge clk`时，代表的时当clk上升沿时触发。`posedge`即意为上升沿有效。同理`negedge`即为下降沿有效。
+
+```
+always @(posedge clk,negedge rst)begin
+	if(rst==0)begin
+		c<=0;
+	end else begin
+end
+```
+
 
 
