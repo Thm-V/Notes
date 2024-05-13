@@ -1,4 +1,4 @@
-# Toming的蒟蒻集
+# -Toming的蒟蒻集
 
 ## 1.杂项
 
@@ -215,7 +215,7 @@ int st_query(int L,int R){
 
 #### 5.1.1 缩点
 
-将**有向图**中的强连通分量缩成一个点，此操作即为缩点
+​	将**有向图**中的强连通分量缩成一个点，此操作即为缩点
 
 ```c++
 int dfn[N],low[N],tnt;
@@ -247,7 +247,7 @@ void Tarjan(int x){
 
 #### 5.1.2 割边（桥）
 
-如果删除**无向图**中的某条边会使无向图的连通分量数增多，则把这条边称为割边或桥。
+​	如果删除**无向图**中的某条边会使无向图的连通分量数增多，则把这条边称为割边或桥。
 
 ```c++
 int dfn[N],low[N],tnt;
@@ -332,7 +332,7 @@ ull Hash(ull B,ull Modp,char s[]){  //此处B和Modp应该尽量大
 
 #### 6.1.2 字符串双哈希
 
-和字符串单哈希类似，只是用不同的进制数和模数分别计算两次，得到该字符串的两个哈希值，用这两个哈希值来确定唯一一个字符串。
+​	和字符串单哈希类似，只是用不同的进制数和模数分别计算两次，得到该字符串的两个哈希值，用这两个哈希值来确定唯一一个字符串。
 
 ## 7.计算几何
 
@@ -349,7 +349,7 @@ struct POINT{
         return POINT{x-p.x,y-p.y};
     }
     
-    inline double operator *(const POINT &p){  //点乘
+    inline double operator ^(const POINT &p){  //点乘  //^优先级小于比较符号，使用时记得加括号
         return x*p.y+y*p.x;
     }
     
@@ -365,6 +365,9 @@ struct POINT{
     inline double len(){
         return sqrt(x*x+y*y);
     }
+    inline int len_square(){
+        return x*x+y*y;
+    }
 };
 
 struct LINE{
@@ -374,7 +377,7 @@ struct LINE{
 
 ### 7.2 极角排序
 
-在struct POINT中插入如下代码段，后面即可用sort等进行排序。
+​	在struct POINT中插入如下代码段，后面即可用sort等进行排序。
 
 ```C++
 inline int quadrant(POINT p){  //判断象限
@@ -390,7 +393,7 @@ inline int quadrant(POINT p){  //判断象限
 }
 inline bool operator <(const POINT &p){  //从x正半轴开始逆时针排序
     if(quadrant(POINT{x,y})==quadrant(p))  //先判断象限
-        return POINT{x,y}^p>0;  //同一象限内通过判断叉积正负来判断相对大小
+        return POINT{x,y}*p>0;  //同一象限内通过判断叉积正负来判断相对大小
     return quadrant(POINT{x,y})<quadrant(p);
 }
 ```
@@ -410,20 +413,21 @@ POINT point[N];  //多边形上的点按照逆时针排序
 double Polygonal_area(){
     double ans=0;
     for(int i=2;i<n;i++)
-        ans+=double((point[i]-point[1])^(point[i+1]-point[1]));  //将多边形切割成多个三角形
+        ans+=double((point[i]-point[1])*(point[i+1]-point[1]));  //将多边形切割成多个三角形
     return fabs(ans/2.0);
 }
 ```
 
 7.5  Pick定理（求多边形内部格点数）
 
-给定顶点均为整点的简单多边形，其面积为$S$，内部格点数为$a$，边上格点数目为$b$。Pick定理给定它们之间的关系为$S=a+\frac{b}{2}-1$，常用来求内部格点数，变形为$a=S-\frac{b}{2}+1$。
+​	给定顶点均为整点的简单多边形，其面积为$S$，内部格点数为$a$，边上格点数目为$b$。Pick定理给定它们之间的关系为$S=a+\frac{b}{2}-1$，常用来求内部格点数，变形为$a=S-\frac{b}{2}+1$。
 
 ### 7.6 凸包
 
 #### 7.6.1 Graham扫描法（二维）
 
 ```C++
+//POINT中需要配置'-'，'*'，'.len()'
 int top;
 POINT q[N];
 
@@ -432,7 +436,7 @@ bool cmp(POINT p1,POINT p2){
     p2=p2-point[1];
     if(p1*p2==0)
         return p1.len()<p2.len();
-    return p1*p2>0;
+    return p*p2>0; //叉乘
 }
 
 void Graham_scan(){
@@ -444,7 +448,7 @@ void Graham_scan(){
     q[++top]=point[1];
     for(int i=2;i<=n;i++){
         while(top>=2){
-            if((q[top]-q[top-1])^(point[i]-q[top])>0)
+            if((q[top]-q[top-1])*(point[i]-q[top])>0)
                 break;
             else{
                 top--;
@@ -466,11 +470,6 @@ i64 ans;
     
 int leny;
 int Y[2*N];  //所有出现的y值，用于离散化
-
-struct POINT{
-    int x;
-    int y;
-};
 
 struct SCANLINE{  //垂直于x轴
     int bey;
@@ -539,10 +538,47 @@ void ScanLine(){
 
 #### 7.7.2 求矩形周长
 
-和求矩形面积并类似，只不过需要分别沿竖直和水平方向各扫描一遍，即只要重写scanline和Y即可。同时，将答案统计一行更改为：
+​	和求矩形面积并类似，只不过需要分别沿竖直和水平方向各扫描一遍，即只要重写scanline和Y即可。同时，将答案统计一行更改为：
 
 ```c++
 ans=ans+abs(tree[1].len-last);
 last=tree[1].len;	//last定义在循环外面
+```
+
+### 7.3 旋转卡壳
+
+​	在凸包算法的基础上，通过枚举凸包上某一条边的同时维护其他需要的点，能够在线性时间内求解如凸包直径、最小矩形覆盖等和凸包性质相关的问题。
+
+#### 7.3.1求凸包直径
+
+​	首先使用任何一种凸包算法求出给定所有点的凸包，有着最长距离的点对一定在凸包上。而由于凸包的形状，我们发现，逆时针地遍历凸包上的边，对于每条边都找到离这条边最远的点，那么这时随着边的转动，对应的最远点也在逆时针旋转，不会有反向的情况，这意味着我们可以在逆时针枚举凸包上的边时，记录并维护一个当前最远点，并不断计算、更新答案。
+
+```C++
+//POINT中需要配置'-'，'*'，'.len()'，'len_square()'
+
+//Graham扫描线求凸包
+int top;
+POINT q[N];
+void Graham_scan();
+
+int Triangle_area_cross_square(POINT p1,POINT p2,POINT p0){
+    return abs((p1-p0)*(p2-p0));
+}
+
+int diameter(){
+    int ans=0;
+    if(top==2){ 
+    	return (q[1]-q[2]).len_square();
+        return;
+    }
+    q[top+1]=q[1];
+    int idx=3;	
+    for(int i=1;i<=top;i++){
+        while(Triangle_area_cross_2(q[i],q[i+1],q[idx])<=Triangle_area_cross_2(q[i],q[i+1],q[idx%top+1]))
+            idx=idx%top+1;
+        ans=max(ans,max((q[idx]-q[i]).len_square(),(q[idx]-q[i+1]).len_square()));
+    }
+    return ans;
+}
 ```
 
