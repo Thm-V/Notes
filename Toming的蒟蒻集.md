@@ -1,4 +1,4 @@
-# -Toming的蒟蒻集
+# Toming的蒟蒻集
 
 ## 1.杂项
 
@@ -66,7 +66,38 @@ pause
 
 ### 2.1 优先队列
 
+```C++
+priority_queue<int> q;  //大根堆
+queue<int,vector<int>,greater<int> >q1,q2;  //小根堆
 
+q.push(x);  //放入元素
+q.pop();    //弹出堆顶元素
+q.top();    //返回堆顶元素
+q.empty();  //判断是否为空,为空时返回值为1
+q.size();   //返回堆内元素个数
+q1.swap(q2);	//交换两个堆
+```
+
+### 2.2 set/multiset
+
+​	set 是 C++ 标准库中的一个容器，属于关联容器的一种。它是一个有序集合，其中的元素是唯一的，即每个元素只能在集合中出现一次。set 是基于红黑树实现的，这使得插入、删除和查找操作的时间复杂度都是 O(log n)。
+
+```C++
+set<int> s,s2;
+
+s.insert(x);    //在set集合中插入x
+s.erase(x); //在set集合中删除指定值x
+s.erase(迭代器);    //通过迭代器删除元素
+s.clear();  //清空set集合中的所有值
+s.empty();  //判断set集合是否为空,为空时返回1
+s.size();   //返回set集合中元素的长度
+s.count(x); //返回set集合中x元素的个数（set中没有重复元素，所以返回值只能为1或0）
+s.lower_bound(x);   //返回第一个大于等于x的值
+s.upper_bound(y);   //返回最后一个大于等于x的值
+s.swap(s2); //交换两个set集合
+
+multiset<int> s; //简单理解为可以插入重复元素的set,因此multiset在使用count时返回值不一定只为0或1
+```
 
 ## 3.数学
 
@@ -336,9 +367,21 @@ ull Hash(ull B,ull Modp,char s[]){  //此处B和Modp应该尽量大
 
 ## 7.计算几何
 
+​	在做或者调试过程中，请先检查一遍所有相关变量的类型，以及各种相关函数的返回类型。（血泪教训QAQ）
+
 ### 7.1 前置
 
 ```C++
+//使用double类型时记得处理精度问题
+//浮点比较大小的时候请采用sgn()方式进行比较
+const double eps=1e-10;
+int sgn(double x){
+    if(fabs(x)<eps)
+        return 0;
+    return x>0 ? 1 : -1;
+}
+
+//注意数据类型
 struct POINT{
     int x;
     int y;
@@ -348,14 +391,19 @@ struct POINT{
     inline POINT operator -(const POINT &p){
         return POINT{x-p.x,y-p.y};
     }
+
+    inline POINT operator *(const int k){	//数乘
+		return POINT{x*k,y*k};
+    }
     
-    inline double operator ^(const POINT &p){  //点乘  //^优先级小于比较符号，使用时记得加括号
+    inline int operator ^(const POINT &p){  //点乘  //^优先级小于比较符号，使用时记得加括号
         return x*p.y+y*p.x;
     }
     
-    inline double operator ^(const POINT &p){  //叉乘  //注意数据类型
+    inline int operator *(const POINT &p){  //叉乘
         return x*p.y-y*p.x;
     }
+    
     inline bool operator ==(const POINT &p){
         return x==p.x && y==p.y;
     }
@@ -375,7 +423,45 @@ struct LINE{
 };
 ```
 
-### 7.2 极角排序
+### 7.2 点与线
+
+#### 7.2.1 求点到线上的投影
+
+```C++
+//POINT中需要配置'+','-','数乘*','点乘^'
+POINT Get_line_projection(POINT p0,POINT p1,POINT p2){
+    double k=((p2-p1)^(p0-p1))/((p2-p1)^(p2-p1));
+    return p1+(p2-p1)*k;
+}
+```
+
+### 7.3 多边形
+
+#### 7.3.1 三角形面积(叉积法)
+
+```C++
+double Triangle_area_cross(POINT p1,POINT p2,POINT p0){
+    return double(abs((p1-p0)*(p2-p0)))/2.0;
+}
+```
+
+#### 7.3.2 多边形面积（不论凸凹）
+
+```C++
+POINT point[N];  //多边形上的点按照逆时针排序
+double Polygonal_area(){
+    double ans=0;
+    for(int i=2;i<n;i++)
+        ans+=double((point[i]-point[1])*(point[i+1]-point[1]));  //将多边形切割成多个三角形
+    return fabs(ans/2.0);
+}
+```
+
+### 7.4  Pick定理（求多边形内部格点数）
+
+​	给定顶点均为整点的简单多边形，其面积为$S$，内部格点数为$a$，边上格点数目为$b$。Pick定理给定它们之间的关系为$S=a+\frac{b}{2}-1$，常用来求内部格点数，变形为$a=S-\frac{b}{2}+1$。
+
+### 7.5 极角排序
 
 ​	在struct POINT中插入如下代码段，后面即可用sort等进行排序。
 
@@ -398,30 +484,6 @@ inline bool operator <(const POINT &p){  //从x正半轴开始逆时针排序
 }
 ```
 
-### 7.3 三角形面积(叉积法)
-
-```C++
-double Triangle_area_cross(POINT p1,POINT p2,POINT p0){
-    return double(abs((p1-p0)*(p2-p0)))/2.0;
-}
-```
-
-### 7.4 多边形面积（不论凸凹）
-
-```C++
-POINT point[N];  //多边形上的点按照逆时针排序
-double Polygonal_area(){
-    double ans=0;
-    for(int i=2;i<n;i++)
-        ans+=double((point[i]-point[1])*(point[i+1]-point[1]));  //将多边形切割成多个三角形
-    return fabs(ans/2.0);
-}
-```
-
-7.5  Pick定理（求多边形内部格点数）
-
-​	给定顶点均为整点的简单多边形，其面积为$S$，内部格点数为$a$，边上格点数目为$b$。Pick定理给定它们之间的关系为$S=a+\frac{b}{2}-1$，常用来求内部格点数，变形为$a=S-\frac{b}{2}+1$。
-
 ### 7.6 凸包
 
 #### 7.6.1 Graham扫描法（二维）
@@ -436,7 +498,7 @@ bool cmp(POINT p1,POINT p2){
     p2=p2-point[1];
     if(p1*p2==0)
         return p1.len()<p2.len();
-    return p*p2>0; //叉乘
+    return p1*p2>0; //叉乘
 }
 
 void Graham_scan(){
@@ -545,28 +607,30 @@ ans=ans+abs(tree[1].len-last);
 last=tree[1].len;	//last定义在循环外面
 ```
 
-### 7.3 旋转卡壳
+### 7.8 旋转卡壳
 
 ​	在凸包算法的基础上，通过枚举凸包上某一条边的同时维护其他需要的点，能够在线性时间内求解如凸包直径、最小矩形覆盖等和凸包性质相关的问题。
 
-#### 7.3.1求凸包直径
+#### 7.8.1求凸包直径
 
 ​	首先使用任何一种凸包算法求出给定所有点的凸包，有着最长距离的点对一定在凸包上。而由于凸包的形状，我们发现，逆时针地遍历凸包上的边，对于每条边都找到离这条边最远的点，那么这时随着边的转动，对应的最远点也在逆时针旋转，不会有反向的情况，这意味着我们可以在逆时针枚举凸包上的边时，记录并维护一个当前最远点，并不断计算、更新答案。
 
 ```C++
-//POINT中需要配置'-'，'*'，'.len()'，'len_square()'
+//POINT中需要配置'-'，'叉乘*'，'.len()'，'len_square()'
 
 //Graham扫描线求凸包
 int top;
 POINT q[N];
+bool cmp(POINT p1,POINT p2);
 void Graham_scan();
 
-int Triangle_area_cross_square(POINT p1,POINT p2,POINT p0){
+int Triangle_area_cross_2(POINT p1,POINT p2,POINT p0){	//注意数据类型
     return abs((p1-p0)*(p2-p0));
 }
 
-int diameter(){
-    int ans=0;
+int ans;
+int diameter(){  //注意数据类型
+    ans=0;
     if(top==2){ 
     	return (q[1]-q[2]).len_square();
         return;
@@ -578,7 +642,59 @@ int diameter(){
             idx=idx%top+1;
         ans=max(ans,max((q[idx]-q[i]).len_square(),(q[idx]-q[i+1]).len_square()));
     }
-    return ans;
+}
+```
+
+#### 7.8.2 求最小矩形覆盖
+
+​	跟求凸包直径类似，对于每条边都找到离这条边最远的点，我们还需要确定矩形的左右边界。所以这次我们需要维护三个点：一个在所枚举的直线对面的点、两个在不同侧面的点。对面的最优点仍然是用叉积算面积来比较，此时比较面积就是在比较这个矩形的一个边长。侧面的最优点则是用点积来比较，因为比较点积就是比较投影的长度，左右两个投影长度相加可以代表这个矩形的另一个边长。这两个边长的最优性相互独立，因此找到三个最优点的位置就能够确定以当前边所在直线为矩阵的一条边时，能覆盖所有点的矩形最小面积。
+
+```c++
+//POINT中需要配置'+','-'，'数乘*','点乘^','叉乘*'，'.len()'，'len_square()'
+
+//精度判断
+int sgn(double x);
+
+//点到线上的投影
+POINT Get_line_projection(POINT p0,POINT p1,POINT p2);
+
+//Graham扫描线求凸包
+int top;
+POINT q[N];
+bool cmp(POINT p1,POINT p2);
+void Graham_scan();
+
+double Triangle_area_cross_2(POINT p1,POINT p2,POINT p0){	//注意数据类型
+    return fabs((p1-p0)*(p2-p0));
+}
+
+double ans=-1;
+POINT pld,prd,pru,plu;	//答案矩形的四个点
+void Min_rect_cover(){
+    q[top+1]=q[1];
+    int idx=3;
+    int idxl=2;
+    int idxr=2;
+    for(int i=1;i<=top;i++){
+        while(sgn(Triangle_area_cross_2(q[i],q[i+1],q[idx])-Triangle_area_cross_2(q[i],q[i+1],q[idx%top+1]))<=0)
+            idx=idx%top+1;
+        while(sgn(((q[i+1]-q[i])^(q[idxr]-q[i]))-((q[i+1]-q[i])^(q[idxr%top+1]-q[i])))<=0)
+            idxr=idxr%top+1;
+        if(i==1)
+            idxl=idxr;
+        while(sgn(((q[i]-q[i+1])^(q[idxl]-q[i+1]))-((q[i]-q[i+1])^(q[idxl%top+1]-q[i+1])))<=0)
+            idxl=idxl%top+1;
+        double t1=Triangle_area_cross_2(q[i],q[i+1],q[idx]);
+        double t2=(fabs((q[i]-q[i+1])^(q[idxl]-q[i+1]))+fabs((q[i+1]-q[i])^(q[idxr]-q[i]))-fabs((q[i]-q[i+1])^(q[i]-q[i+1])));
+        double t3=fabs((q[i]-q[i+1])^(q[i]-q[i+1]));
+        if(sgn(ans-t1*t2/t3)>=0 || ans<0){
+            ans=t1*t2/t3;
+            pld=Get_line_projection(q[idxl],q[i],q[i+1]);
+            prd=Get_line_projection(q[idxr],q[i],q[i+1]);
+            plu=Get_line_projection(q[idxl],q[idx],q[idx]+(q[i]-q[i+1]));
+            pru=Get_line_projection(q[idxr],q[idx],q[idx]+(q[i]-q[i+1]));
+        }
+    }
 }
 ```
 
