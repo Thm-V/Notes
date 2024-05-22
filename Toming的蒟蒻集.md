@@ -99,6 +99,25 @@ s.swap(s2); //交换两个set集合
 multiset<int> s; //简单理解为可以插入重复元素的set,因此multiset在使用count时返回值不一定只为0或1
 ```
 
+### 2.3 map
+
+```C++
+map<typename1,typename2> m;	//typename1是键的类型,typename2是值的类型
+m[key]=value;	//在map中插入（key:value）（通过访问m[key]来访问对应的value）
+迭代器->first;	//访问键
+迭代器->second;	//访问值
+m.find(key);	//返回键为key映射的迭代器
+m.erase(迭代器);	//通过迭代器删除map中的元素
+m.erase(key);	//删除map中键为key的元素
+m.erase(迭代器1,迭代器2);	//删除迭代器1和迭代器2之间的所有元素,左开右闭
+m.size();	//返回map中映射的对数
+m.clear();	//清空map中的所有元素
+m.empty();	//判断map是否为空,为空时返回1
+m.swap(m2);	//交换两个map
+```
+
+
+
 ## 3.数学
 
 ### 3.1 线性基
@@ -239,6 +258,10 @@ int st_query(int L,int R){
 	return max(stmax[L][wz],stmax[R-(1<<wz)+1][wz]);
 }
 ```
+
+### 4.2 树状数组
+
+
 
 ## 5.图论
 
@@ -419,8 +442,13 @@ struct POINT{
 };
 
 struct LINE{
-    POINT l,r;
+    POINT be,en;
+    inline double angle(){	//可能会被卡精度
+		return atan2((en-be).y,(en-be).x);	//返回角度范围(-pi,pi]
+	}
 };
+
+
 ```
 
 ### 7.2 点与线
@@ -434,6 +462,19 @@ POINT Get_line_projection(POINT p0,POINT p1,POINT p2){
     return p1+(p2-p1)*k;
 }
 ```
+
+#### 7.2.2 求两线的交点
+
+```c++
+//POINT中需配置'-','数乘*','叉乘*'
+POINT Get_line_intersection(LINE l1, LINE l2) {
+    POINT vect1=l1.en-l1.be,vect2=l2.en-l2.be;
+	double t=(l1.be-l2.be)*vect2/(vect2*vect1);
+	return l1.be+vect1*t;
+}
+```
+
+
 
 ### 7.3 多边形
 
@@ -482,6 +523,13 @@ inline bool operator <(const POINT &p){  //从x正半轴开始逆时针排序
         return POINT{x,y}*p>0;  //同一象限内通过判断叉积正负来判断相对大小
     return quadrant(POINT{x,y})<quadrant(p);
 }
+
+//在一般的
+inline bool operator ==(const POINT &p){
+	if(quadrant(POINT{x,y})!=quadrant(p))
+        return false;
+	return POINT{x,y}*p==0;
+}
 ```
 
 ### 7.6 凸包
@@ -528,7 +576,6 @@ void Graham_scan(){
 
 ```C++
 int n;	//矩形数量
-i64 ans;
     
 int leny;
 int Y[2*N];  //所有出现的y值，用于离散化
@@ -581,7 +628,8 @@ void Update(int aiml,int aimr,int val,int L,int R,int k){	//aiml和aimr代表真
 	pushup(k);
 }
 
-void ScanLine(){
+i64 ScanLine(){
+    i64 ans=0;
     //先处理scanline和Y
     
 	//纵坐标离散处理
@@ -593,8 +641,9 @@ void ScanLine(){
     
 	for(int i=1;i<2*n;i++){	//根据是否需要考虑最后一条边灵活确定是否需要取到等号
 		Update(scanline[i].bey,scanline[i].eny,scanline[i].type,1,leny-1,1);
-		ans=ans+1ll*(scanline[i+1].x-scanline[i].x)*tree[1].len;
+		ans=ans+1ll*(scanline[i+1].x-scanline[i].x)*tree[1].len;	//如果for里取等号，需处理i+1非法访问的问题
 	}
+    return ans;
 }
 ```
 
@@ -695,6 +744,57 @@ void Min_rect_cover(){
             pru=Get_line_projection(q[idxr],q[idx],q[idx]+(q[i]-q[i+1]));
         }
     }
+}
+```
+
+### 7.9 半平面交
+
+​	可以理解为向量集中每一个向量的左/右侧的交，或者是形如下面方程组的解。
+$$
+f(i)=
+\left\{\begin{matrix}
+A_1x+B_1y+C_1\leq0\\
+A_2x+B_2y+C_2\leq0\\
+...
+\end{matrix}\right.
+$$
+
+```C++
+int linenum;
+LINE line[N];
+
+int t,w;
+LINE q[N];
+
+int sgn(double x);
+double Polygonal_area();
+POINT Get_line_intersection(LINE l1, LINE l2);
+
+bool On_the_right_side(POINT p,LINE l){	//判断点p是否在有向线l的右侧
+	return  sgn((l.en-l.be)*(p-l.be))<0;
+}
+
+bool cmp(LINE l1,LINE l2){	//极角+左侧排序
+	double A=l1.angle();
+	double B=l2.angle();
+	return sgn(A-B)==0 ? On_the_right_side(l2.be,l1) : sgn(A-B)<0;
+}
+
+void Half_plane(){	//求解一系列给定有向线段左侧平面的交
+	sort(line+1,line+1+linenum,cmp);
+	t=w=1;
+	q[1]=line[1];
+	for(int i=2;i<=linenum;i++){
+		if(sgn(line[i].angle()-line[i-1].angle())==0)
+			continue;
+		while(t<w && On_the_right_side(Get_line_intersection(q[w],q[w-1]),line[i]))	//先删队头
+			w--;
+		while(t<w && On_the_right_side(Get_line_intersection(q[t],q[t+1]),line[i]))	//后删队尾
+			t++;
+		q[++w]=line[i];
+	}
+	while(t<w && On_the_right_side(Get_line_intersection(q[w],q[w-1]),q[t])) //去掉多余的头
+		w--;
 }
 ```
 
